@@ -49,26 +49,4 @@ python -m http.server 8000
 
 성능 설명 예시(이론적 비교): 병합 정렬 O(n log n) vs 선택 정렬 O(n²). 이는 실제 실행 시간을 측정한 결과가 아닙니다. 스택의 pop O(1)과 화면을 다시 그리는 O(P)는 별도입니다.
 
-## 검증
 
-Node.js가 있으면:
-
-```sh
-npm test
-```
-
-스택의 LIFO, 빈 배열·홀수 길이 정렬, 안정성, 원본 보존, 한글/숫자 이름과 날짜 정렬, 네 방향의 캐시 및 저장·삭제 후 갱신을 검사합니다.
-
-## Netlify 배포 및 제출
-
-- Netlify Drop에 **index.html, styles.css, app.js, algorithms.js가 들어 있는 이 폴더**를 올립니다. 빌드 과정은 없습니다. GitHub 연결 시에도 빌드 명령 없이 publish directory를 `.`으로 설정합니다.
-- 공개된 사이트에서 그리기, 지우개, 되돌리기, 저장, 네 가지 정렬을 다시 확인합니다.
-- Autolab에는 별도로 작성한 `submission.txt` 하나를 제출합니다. 실제 공개 주소를 받은 뒤 다음 형식으로 작성합니다. 아래 주소는 예시이므로 그대로 제출하지 마세요.
-
-```text
-Website: [실제 Netlify 공개 주소]
-Algorithm: I used a stack to undo drawing and erasing actions in last-in-first-out order. Merge sort builds cached gallery orders by name and creation date on initial load and after saves or deletions; changing the sorting menu reuses those orders.
-Performance: Merge sort O(n log n) vs selection sort O(n²), a theoretical comparison. Stack pop is O(1); replaying the drawing history after undo is O(P), where P is the number of remaining points.
-```
-
-과제 PDF에서 `Performance: ?? vs ??`의 비교 대상은 구체적으로 지정하지 않았으므로 수업의 추가 안내가 있다면 그 기준을 우선합니다.
