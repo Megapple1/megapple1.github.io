@@ -1,2 +1,74 @@
-# megapple1.github.io
-.
+# 스케치룸 · Sketchroom
+
+색상과 굵기를 골라 그림을 그리고, 저장한 작품을 이름순·날짜순으로 확인하는 작은 그림 작업실입니다. HTML, CSS, JavaScript만 사용하며 설치나 빌드가 필요 없습니다.
+
+## 사용하기
+
+1. 펜과 색상, 굵기를 고르고 마우스·터치·펜으로 그립니다.
+2. 지우개로 부분을 지우거나 **되돌리기**로 마지막 동작을 취소합니다. 전체 지우기도 취소할 수 있습니다.
+3. 작품 이름을 입력하고 **그림 저장하기**를 누릅니다. 이름을 생략하면 `이름 없는 그림`으로 저장합니다.
+4. 내 그림 보관함에서 날짜순(최신/오래된 순), 이름순(오름차순/내림차순)을 선택합니다.
+5. 그림을 누르면 크게 보기, PNG 내려받기, 삭제를 할 수 있습니다.
+
+단축키: `B` 펜, `E` 지우개, `Ctrl+Z` / `⌘+Z` 되돌리기. 이름 입력 중에는 텍스트 편집 단축키가 유지됩니다.
+
+그림은 현재 기기·브라우저·사이트 주소의 **IndexedDB**에 저장됩니다. 새로고침 후에도 보관되지만 다른 브라우저와 동기화되지 않습니다. 브라우저 데이터 삭제 시 그림도 삭제되므로 중요한 작품은 PNG로 내려받으세요. 현재 작업 중인 캔버스와 되돌리기 이력은 새로고침하면 초기화됩니다. 저장 버튼을 누른 그림만 보관됩니다.
+
+## 로컬 실행
+
+Windows에서는 `start-preview.cmd`를 더블클릭하면 브라우저가 열립니다. Codex에 포함된 Python 또는 설치된 Python을 사용합니다. 실행 창은 열어 두고, 사용을 마치면 해당 창에서 Enter를 눌러 종료합니다. 항상 `http://127.0.0.1:8000`을 사용합니다. 다른 미리보기가 실행 중이면 기존 실행 창을 먼저 종료하세요. 보관함을 다시 보려면 같은 브라우저와 주소를 사용해야 합니다.
+
+파일을 더블클릭하는 대신 정적 웹 서버로 실행합니다. Python이 있으면 이 폴더에서:
+
+```sh
+python -m http.server 8000
+```
+
+브라우저에서 `http://localhost:8000`을 엽니다.
+
+## 과제 알고리즘
+
+### 스택: 되돌리기
+
+- `algorithms.js`의 `DrawingStack`이 그림 동작을 저장합니다.
+- `app.js`의 `finishStroke()`가 한 번 그은 선(누르기부터 떼기까지)을 `push()`합니다. 지우개도 동일합니다.
+- `undo()`가 마지막 동작을 `pop()`하고, `redraw()`가 남은 동작으로 캔버스를 다시 그립니다.
+- 전체 지우기도 하나의 동작으로 저장하므로 지우기 직전으로 돌아갈 수 있습니다.
+- `push`는 분할 상환 O(1), `pop`은 O(1)입니다. 화면 복원 비용은 남은 동작에 포함된 점 수를 P라고 할 때 O(P)입니다. 화면 복원 전체를 O(1)이라고 주장하지 않습니다.
+
+### 병합 정렬: 보관함 정렬
+
+- `algorithms.js`의 `mergeSort()`는 직접 구현한 반복형 병합 정렬입니다.
+- `app.js`의 `refreshGallery()`가 최초 보관함 로딩 및 저장·삭제 성공 후 `buildDrawingSortCache()`를 호출합니다. 이 함수가 병합 정렬로 날짜순(최신/오래된 순), 이름순(오름차순/내림차순)의 네 가지 결과를 한 번에 계산해 메모리에 캐시합니다.
+- `renderGallery()`는 선택한 옵션에 해당하는 캐시를 읽습니다. 메뉴만 바꾸거나 그림을 크게 보는 경우에는 다시 정렬하지 않습니다. 새로고침하면 저장된 그림을 읽고 캐시를 새로 만듭니다.
+- 날짜는 생성 시각 숫자로 비교하고, 이름은 `Intl.Collator('ko', {numeric: true})`로 한글과 숫자를 비교합니다.
+- 이름/날짜가 같으면 어느 방향에서도 기존 순서를 유지하는 안정 정렬입니다. 따라서 역순 옵션도 별도로 정렬해 캐시하며, 원본 배열은 변경하지 않습니다.
+- 캐시는 그림 객체를 참조하는 배열만 보관합니다. 이미지 데이터를 네 번 복제하거나 별도 저장하지 않습니다.
+- 캐시를 갱신할 때 병합 정렬을 네 번 수행하므로 비교 횟수 기준 시간 O(n log n), 추가 공간 O(n)입니다. 이름 비교 자체의 비용은 문자열 길이에도 영향을 받습니다.
+- 메뉴 전환 시 캐시 목록 선택은 O(1)이며 정렬 계산은 없습니다. 그림 카드 n개를 화면에 다시 만드는 렌더링은 O(n)이므로 전환 전체가 O(1)은 아닙니다.
+
+성능 설명 예시(이론적 비교): 병합 정렬 O(n log n) vs 선택 정렬 O(n²). 이는 실제 실행 시간을 측정한 결과가 아닙니다. 스택의 pop O(1)과 화면을 다시 그리는 O(P)는 별도입니다.
+
+## 검증
+
+Node.js가 있으면:
+
+```sh
+npm test
+```
+
+스택의 LIFO, 빈 배열·홀수 길이 정렬, 안정성, 원본 보존, 한글/숫자 이름과 날짜 정렬, 네 방향의 캐시 및 저장·삭제 후 갱신을 검사합니다.
+
+## Netlify 배포 및 제출
+
+- Netlify Drop에 **index.html, styles.css, app.js, algorithms.js가 들어 있는 이 폴더**를 올립니다. 빌드 과정은 없습니다. GitHub 연결 시에도 빌드 명령 없이 publish directory를 `.`으로 설정합니다.
+- 공개된 사이트에서 그리기, 지우개, 되돌리기, 저장, 네 가지 정렬을 다시 확인합니다.
+- Autolab에는 별도로 작성한 `submission.txt` 하나를 제출합니다. 실제 공개 주소를 받은 뒤 다음 형식으로 작성합니다. 아래 주소는 예시이므로 그대로 제출하지 마세요.
+
+```text
+Website: [실제 Netlify 공개 주소]
+Algorithm: I used a stack to undo drawing and erasing actions in last-in-first-out order. Merge sort builds cached gallery orders by name and creation date on initial load and after saves or deletions; changing the sorting menu reuses those orders.
+Performance: Merge sort O(n log n) vs selection sort O(n²), a theoretical comparison. Stack pop is O(1); replaying the drawing history after undo is O(P), where P is the number of remaining points.
+```
+
+과제 PDF에서 `Performance: ?? vs ??`의 비교 대상은 구체적으로 지정하지 않았으므로 수업의 추가 안내가 있다면 그 기준을 우선합니다.
